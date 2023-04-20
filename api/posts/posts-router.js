@@ -17,8 +17,47 @@ router.get("/", (req, res) => {
       });
     });
 });
-router.get("/:id", (req, res) => {});
-router.post("/", (req, res) => {});
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      res.status(404).json({
+        message: "The post with the specified ID does not exist",
+      });
+    } else {
+      res.json(post);
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: "The post with the specified ID does not exist",
+      err: err.message,
+      stack: err.stack,
+    });
+  }
+});
+router.post("/", (req, res) => {
+  const { title, contents } = req.body;
+  if (!title || !contents) {
+    res.status(400).json({
+      message: "Please provide title and contents for the post",
+    });
+  } else {
+    Post.insert({ title, contents })
+      .then(({ id }) => {
+        return Post.findById(id);
+      })
+      .then((post) => {
+        res.status(201).json(post);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          message: "there was an error while saving the post to the database",
+          err: err.message,
+          stack: err.stack,
+        });
+      });
+  }
+});
 router.delete("/:id", (req, res) => {});
 router.put("/:id", (req, res) => {});
 router.get("/:id/messages", (req, res) => {});
